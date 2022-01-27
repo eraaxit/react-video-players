@@ -1,26 +1,16 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import YT from "./components/players/YT";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <YT
+        sourceUrl="https://res.cloudinary.com/duckchat/video/upload/v1637597453/samples/sea-turtle.mp4"
+        createObjectUrl={true}
+      />
     </div>
   );
 }
 
 export default App;
+
+//TODO: Do setup EsLint & Prettier
