@@ -1,4 +1,4 @@
 export interface playerProps {
   sourceUrl: string;
-  createObjectUrl?: boolean;
+  createUrl?: boolean;
 }
