@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { playerProps } from "../../types";
 import { throwPlayerPropsError } from "../../utils/helpers";
-import "./YT.css"
-
+import "./YT.css";
 
 const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
-
-  const [muted , setMuted] = useState<boolean>(false);
-  const [play, setPlay]=useState<boolean>(true);
+  const [muted, setMuted] = useState<boolean>(false);
+  const [play, setPlay] = useState<boolean>(true);
 
   const [url, setUrl] = useState<string>("");
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -26,67 +24,68 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
   }, [sourceUrl, createUrlObject, createUrl]);
 
   const handlePlay = () => {
-    if(play){
+    if (play) {
       videoRef.current?.pause();
       setPlay(false);
-    }else{
+    } else {
       videoRef.current?.play();
       setPlay(true);
     }
-  }
+  };
 
   const handleVolume = () => {
-    if(videoRef.current){
-    if(muted){
-      videoRef.current.volume=0;
-      setMuted(false);
-    }else{
-      videoRef.current.volume=1;
-      setMuted(true);
+    if (videoRef.current) {
+      if (muted) {
+        videoRef.current.volume = 0;
+        setMuted(false);
+      } else {
+        videoRef.current.volume = 1;
+        setMuted(true);
+      }
     }
-  }
-  }
+  };
 
   return (
-    <div >
+    <div>
       {url ? (
         <div className="videoplayer">
-          <video autoPlay ref={videoRef} className="video" >
-            <source src={url} type="video/mp4"  />
+          <video autoPlay ref={videoRef} className="video">
+            <source src={url} type="video/mp4" />
           </video>
           <div className="controls">
-          <div className="playButton">
-            {play ? (
-              <>
-          <i className="fas fa-pause" onClick={handlePlay}></i>
-              </>
-            ):(
-              <>
-             <i className="fas fa-play" onClick={handlePlay}></i>
-             </>
-            )}
-          </div>
-          <div className="volumeButton">
-            {!muted ? (
+            <div className="playButton">
+              {play ? (
                 <>
-                <i className="fas fa-volume-mute" onClick={handleVolume}></i>
+                  <i className="fas fa-pause" onClick={handlePlay}></i>
                 </>
-              ):(
+              ) : (
                 <>
-                <i className="fas fa-volume-down" onClick={handleVolume}></i>
+                  <i className="fas fa-play" onClick={handlePlay}></i>
                 </>
-              )
-            }
+              )}
+            </div>
+            <div className="volumeButton">
+              {!muted ? (
+                <>
+                  <i className="fas fa-volume-mute" onClick={handleVolume}></i>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-volume-down" onClick={handleVolume}></i>
+                </>
+              )}
+            </div>
+            <div className="fullScreen">
+              <i
+                className="fas fa-expand"
+                onClick={() => videoRef.current?.requestFullscreen()}
+              ></i>
+            </div>
           </div>
-          <div className="fullScreen">
-          <i className="fas fa-expand" onClick={() => videoRef.current?.requestFullscreen()}></i>
-          </div>
-
-        </div>
         </div>
       ) : (
         <div className="loader">
-        <i className="fas fa-spinner fa-spin"></i>
+          <i className="fas fa-spinner fa-spin"></i>
         </div>
       )}
     </div>
