@@ -1,14 +1,23 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { playerProps } from "../../types";
 import { throwPlayerPropsError } from "../../utils/helpers";
-import "./YT.css";
+import "./YT.scss";
+import {
+  BsFillVolumeDownFill,
+  BsFillVolumeUpFill,
+  BsFillVolumeMuteFill,
+  BsPlayFill,
+  BsPauseFill,
+} from "react-icons/bs";
+import { BiFullscreen } from "react-icons/bi";
 
 const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
-  const [muted, setMuted] = useState<boolean>(false);
-  const [play, setPlay] = useState<boolean>(true);
-
+  const [muted, setMuted] = useState<number>(50);
   const [url, setUrl] = useState<string>("");
+  const [play, setPlay] = useState<boolean>(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [vol, setVol] = useState<number>(50);
+  const [preVol, setPreVol] = useState<number>(50);
 
   const createUrlObject = useCallback(async () => {
     const response = await fetch(sourceUrl);
@@ -32,17 +41,35 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
       setPlay(true);
     }
   };
-
   const handleVolume = () => {
+    console.log(videoRef.current?.volume);
     if (videoRef.current) {
-      if (muted) {
-        videoRef.current.volume = 0;
-        setMuted(false);
+      if (muted < 3) {
+        if (preVol > 3) {
+          videoRef.current.volume = preVol / 100;
+          setMuted(preVol);
+          setVol(preVol);
+        } else if (preVol <= 3) {
+          videoRef.current.volume = 50 / 100;
+          setVol(50);
+          setMuted(50);
+        }
       } else {
-        videoRef.current.volume = 1;
-        setMuted(true);
+        videoRef.current.volume = 0;
+        setMuted(0);
+        setVol(0);
       }
     }
+  };
+
+  const handleVolumeSlider = (e: any) => {
+    setPreVol(e.target.value);
+    setVol(e.target.value);
+    if (videoRef.current) {
+      videoRef.current.volume = parseInt(e.target.value) / 100;
+    }
+    setMuted(e.target.value);
+    console.log(preVol);
   };
 
   return (
@@ -56,36 +83,66 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
             <div className="playButton">
               {play ? (
                 <>
-                  <i className="fas fa-pause" onClick={handlePlay}></i>
+                  <div onClick={handlePlay}>
+                    {" "}
+                    <BsPauseFill />
+                  </div>
                 </>
               ) : (
                 <>
-                  <i className="fas fa-play" onClick={handlePlay}></i>
+                  <div onClick={handlePlay}>
+                    {" "}
+                    <BsPlayFill />
+                  </div>
                 </>
               )}
             </div>
-            <div className="volumeButton">
-              {!muted ? (
-                <>
-                  <i className="fas fa-volume-mute" onClick={handleVolume}></i>
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-volume-down" onClick={handleVolume}></i>
-                </>
-              )}
+            <div className="volBox">
+              <div className="volumeButton">
+                {muted < 3 ? (
+                  <>
+                    <div onClick={handleVolume}>
+                      <BsFillVolumeMuteFill />
+                    </div>
+                  </>
+                ) : muted <= 50 ? (
+                  <>
+                    <div onClick={handleVolume}>
+                      <BsFillVolumeDownFill />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div onClick={handleVolume}>
+                      <BsFillVolumeUpFill />
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="volumeSlider">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={vol}
+                  onChange={handleVolumeSlider}
+                  className="volRange"
+                />
+              </div>
             </div>
             <div className="fullScreen">
-              <i
-                className="fas fa-expand"
-                onClick={() => videoRef.current?.requestFullscreen()}
-              ></i>
+              <div onClick={() => videoRef.current?.requestFullscreen()}>
+                <BiFullscreen />
+              </div>
             </div>
           </div>
         </div>
       ) : (
         <div className="loader">
-          <i className="fas fa-spinner fa-spin"></i>
+          <div>
+            <img src="https://c.tenor.com/I6kN-6X7nhAAAAAj/loading-buffering.gif" />
+          </div>
         </div>
       )}
     </div>
