@@ -38,14 +38,7 @@
   display: float;
   color: white;
 }
-.loader {
-  font-size: 40px;
-  height: 20px;
-  width: 20px;
-  color: black;
-  margin: auto;
-  margin-top: 45vh;
-}
+
 i:hover {
   cursor: pointer;
 }
@@ -145,6 +138,9 @@ input[type="range"] {
 .videoplayer {
   width: fit-content;
   position: relative;
+  background: rgb(22, 22, 22);
+  min-height: 500px;
+  min-width: 700px;
 }
 .controls-hidden {
   width: 100%;
@@ -166,25 +162,6 @@ input[type="range"] {
 
 .videoplayer:hover .controls-hidden {
   display: block;
-}
-
-.loader {
-  font-size: 40px;
-  height: 20px;
-  width: 20px;
-  color: black;
-  margin: auto;
-  margin-top: 45vh;
-  animation: load 0.5s infinite;
-  transform-origin: 20px 20px;
-}
-@keyframes load {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .video {

@@ -2,12 +2,18 @@ import React, { useCallback, useEffect, useState, useRef } from "react";
 import { playerProps } from "../../types";
 import { throwPlayerPropsError } from "../../utils/helpers";
 import "./YT.scss";
-import { ImPlay3, ImSpinner3 } from "react-icons/im";
+import { ImPlay3 } from "react-icons/im";
 import { IoMdPause, IoMdVolumeOff } from "react-icons/io";
 import { MdVolumeDown, MdVolumeUp } from "react-icons/md";
 import { BiFullscreen } from "react-icons/bi";
+import Spinner1 from "../Spinners/Spinner1";
 
 const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
+  const containerRef = useRef(null);
+  const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
+  const [error, setError] = useState<
+    "" | "Timeout Error" | "Server error" | "Failed to play video"
+  >("");
   const [muted, setMuted] = useState<number>(50);
   const [url, setUrl] = useState<string>("");
   const [play, setPlay] = useState<boolean>(false);
@@ -21,10 +27,16 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
   const [videoCurrDuration, setVideoCurrDuration] = useState<number>(0);
 
   const createUrlObject = useCallback(async () => {
-    const response = await fetch(sourceUrl);
-    const blob = await response.blob();
-    const _url = URL.createObjectURL(blob);
-    setUrl(_url);
+    try {
+      const response = await fetch(sourceUrl);
+      const blob = await response.blob();
+      const _url = URL.createObjectURL(blob);
+      setUrl(_url);
+      setVideoLoaded(true);
+    } catch (error) {
+      console.log("[react-video-players] error in fetching video -", error);
+      setError("Server error");
+    }
   }, [sourceUrl]);
 
   useEffect(() => {
@@ -175,9 +187,15 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
   };
 
   return (
-    <div className="container">
-      {url ? (
-        <div className="videoplayer" tabIndex={0} onKeyDown={handleKeyPress}>
+    <div>
+      {error}
+      <div
+        className="videoplayer"
+        ref={containerRef}
+        tabIndex={0}
+        onKeyDown={handleKeyPress}
+      >
+        {videoLoaded ? (
           <div onClick={handlePlay}>
             <video
               loop
@@ -188,89 +206,90 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
               <source src={url} type="video/mp4" />
             </video>
           </div>
-          <div className="playPause">
-            <div
-              style={{
-                animationName: `${!play ? "playButtonAnime" : ""}`,
-              }}
-            >
-              <IoMdPause />
-            </div>
-            <div
-              style={{
-                animationName: `${play ? "playButtonAnime" : ""}`,
-              }}
-            >
-              <ImPlay3 />
-            </div>
+        ) : (
+          <div className="spinner-container">
+            <Spinner1 />
           </div>
-          <div className={play ? "controls-hidden" : "controls"}>
-            <div className="videoSeeker">
-              <input
-                type="range"
-                min="0"
-                max="1000"
-                step="1"
-                className="range"
-                style={{
-                  background: ` linear-gradient(to right,
+        )}
+        <div className="playPause">
+          <div
+            style={{
+              animationName: `${!play ? "playButtonAnime" : ""}`,
+            }}
+          >
+            <IoMdPause />
+          </div>
+          <div
+            style={{
+              animationName: `${play ? "playButtonAnime" : ""}`,
+            }}
+          >
+            <ImPlay3 />
+          </div>
+        </div>
+        <div className={play ? "controls-hidden" : "controls"}>
+          <div className="videoSeeker">
+            <input
+              type="range"
+              min="0"
+              max="1000"
+              step="1"
+              className="range"
+              style={{
+                background: ` linear-gradient(to right,
     #cc181e ${videoSeekerPos + 0.5}%, #444 0%)`,
-                }}
-                value={videoTime}
-                onChange={handleVideoTime}
-              />
-            </div>
-            <div className="gradient"></div>
-            <div
-              className={play ? "playButton pause" : "playButton play"}
-              onClick={handlePlay}
-            ></div>
-            <div className="volumeButton">
-              {muted < 3 ? (
-                <div onClick={handleVolume}>
-                  <IoMdVolumeOff />
-                </div>
-              ) : muted <= 50 ? (
-                <div onClick={handleVolume}>
-                  <MdVolumeDown />
-                </div>
-              ) : (
-                <div onClick={handleVolume}>
-                  <MdVolumeUp />
-                </div>
-              )}
-            </div>
-            <div className="volumeSlider">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={vol}
-                onChange={handleVolumeSlider}
-                className="range2"
-                style={{
-                  background: ` linear-gradient(to right,
+              }}
+              value={videoTime}
+              onChange={handleVideoTime}
+            />
+          </div>
+          <div className="gradient"></div>
+          <div
+            className={play ? "playButton pause" : "playButton play"}
+            onClick={handlePlay}
+          ></div>
+          <div className="volumeButton">
+            {muted < 3 ? (
+              <div onClick={handleVolume}>
+                <IoMdVolumeOff />
+              </div>
+            ) : muted <= 50 ? (
+              <div onClick={handleVolume}>
+                <MdVolumeDown />
+              </div>
+            ) : (
+              <div onClick={handleVolume}>
+                <MdVolumeUp />
+              </div>
+            )}
+          </div>
+          <div className="volumeSlider">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={vol}
+              onChange={handleVolumeSlider}
+              className="range2"
+              style={{
+                background: ` linear-gradient(to right,
                     white ${volumeSliderPos}%, #444 0%)`,
-                }}
-              />
-            </div>
-            <div className="timer">
-              0:{videoCurrDuration} / 0:{videoRef.current?.duration.toFixed()}
-            </div>
-            <div
-              className="fullScreen"
-              onClick={() => videoRef.current?.requestFullscreen()}
-            >
-              <BiFullscreen />
-            </div>
+              }}
+            />
+          </div>
+          <div className="timer">
+            0:{videoCurrDuration} / 0:{videoRef.current?.duration.toFixed()}
+          </div>
+          <div
+            className="fullScreen"
+            // @ts-ignore
+            onClick={() => containerRef.current?.requestFullscreen()}
+          >
+            <BiFullscreen />
           </div>
         </div>
-      ) : (
-        <div className="loader">
-          <ImSpinner3 />
-        </div>
-      )}
+      </div>
     </div>
   );
 };
