@@ -1,68 +1,338 @@
-.playButton {
-    float: left;
-  }
-  .volumeSlider input{
-    cursor: pointer;
-  }
-  .volBox{
-    cursor: pointer;
-    float: left;
-    display: flex;
-  }
-  .volumeButton{
-    width: 20px;
-    float: left;
-  }
-  .volumeSlider{
-    display: none;
-    margin-left: 10px;
-    float: right;
-  }
-  .volBox:hover .volumeSlider{
-    display: inline-block;
-  }
-  
-  .fullScreen {
-    float: right;
-  }
-  .videoplayer {
-    width: fit-content;
-  }
-  .controls {
-    width: 100%;
-    position: relative;
-    bottom: 40px;
-  }
-  .controls>div {
-    padding:0px 10px;
-    display: float;
-    color: white;
-  }
-  .loader{
-    font-size: 40px;
-    height: 20px;
-    width: 20px;
-    color:black;
-    margin:auto;
-    margin-top:45vh;
-  }
-  i:hover{
-    cursor:pointer;
-  }
-
-input[type="range"] {
+@mixin common-control-css {
+  padding: 0px 10px;
+  color: rgb(255, 255, 255);
+  font-size: 24px;
+  cursor: pointer;
   position: relative;
-  top:-3px;
-  left:-3px;
-  width: 70px;
-  height: 5px;
-  background: #fdfdfd99;
-  border-radius: 7px;
+  top: -5px;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+// ::-webkit-media-controls {
+//   display:none !important;
+// }
+
+.playButton {
+  @include common-control-css;
+  float: left;
+  border-color: transparent transparent transparent white;
+  cursor: pointer;
+  will-change: border-width;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  height: 20px;
+  margin-left: 25px;
+}
+.play {
+  border-style: solid;
+  border-width: 10px 0 10px 16px;
+}
+.pause {
+  border-style: double;
+  border-width: 0px 0 0px 18px;
+}
+.volumeButton {
+  @include common-control-css;
+  float: left;
+  z-index: 4;
+}
+
+.fullScreen {
+  @include common-control-css;
+  float: right;
+  padding-right: 20px;
+}
+.fullScreen:hover {
+  transform: scale(1.1);
+  transition: 0.3s;
+}
+.volumeSlider {
+  @include common-control-css;
+  opacity: 0;
+  width: 0px;
+  height: 0px;
+  float: left;
+  transition: all 0.2s;
+  position: relative;
+  left: -10px;
+}
+.timer {
+  @include common-control-css;
+  font-size: 13px;
+  float: left;
+  font-family: Arial, Helvetica, sans-serif;
+  top: 0px;
+  left: -5px;
+}
+.volumeButton:hover ~ .volumeSlider {
+  visibility: visible;
+  opacity: 1;
+  width: 80px;
+  height: auto;
+}
+.volumeSlider:hover {
+  visibility: visible;
+  opacity: 1;
+  width: 80px;
+  height: auto;
+}
+
+.gradient {
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(0, 0, 0, 1));
+  position: absolute;
+  top: -95px;
+  z-index: -1;
+}
+
+.videoplayer {
+  width: fit-content;
+  position: relative;
+}
+.controls-hidden {
+  width: 100%;
+  height: auto;
+  position: absolute;
+  bottom: 10px;
+  transition: all 0.1s ease;
+  z-index: 2;
+  display: none;
+}
+.controls {
+  width: 100%;
+  height: auto;
+  position: absolute;
+  bottom: 10px;
+  transition: all 0.1s ease;
+  z-index: 2;
+}
+
+.videoplayer:hover .controls-hidden {
+  display: block;
+}
+
+.loader {
+  font-size: 40px;
+  height: 20px;
+  width: 20px;
+  color: black;
+  margin: auto;
+  margin-top: 45vh;
+  animation: load 0.5s infinite;
+  transform-origin: 20px 20px;
+}
+@keyframes load {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.video {
+  position: relative;
+}
+.playPause {
+  position: absolute;
+  margin: auto;
+  color: rgb(255, 255, 255);
+  height: 10%;
+  width: 10%;
+  bottom: 50%;
+  left: 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.playPause div {
+  animation-duration: 0.5s;
+  animation-iteration-count: 1;
+  animation-direction: linear;
+  animation-timing-function: ease-in;
+  font-size: 0px;
+}
+
+@keyframes playBoxAnime {
+  0% {
+    height: 60px;
+    width: 60px;
+    visibility: visible;
+    opacity: 1;
+  }
+  50% {
+    height: 70px;
+    width: 70px;
+    visibility: visible;
+    opacity: 0.7;
+  }
+  100% {
+    height: 80px;
+    width: 80px;
+    opacity: 0;
+    visibility: visible;
+  }
+}
+@keyframes playButtonAnime {
+  0% {
+    visibility: visible;
+    font-size: 35px;
+    opacity: 1;
+  }
+  50% {
+    visibility: visible;
+    font-size: 45px;
+    opacity: 0.7;
+  }
+  100% {
+    visibility: visible;
+    font-size: 55px;
+    opacity: 0;
+  }
+}
+
+//volume
+
+.volumeUpDown {
+  position: absolute;
+  margin: auto;
+  color: red;
+  height: 10%;
+  width: 10%;
+  bottom: 80%;
+  left: 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+.volumeUpDown div {
+  animation-duration: 0.5s;
+  animation-iteration-count: 1;
+  animation-direction: linear;
+  animation-timing-function: ease-in;
+  font-size: 0px;
+}
+
+@keyframes playBoxAnime {
+  0% {
+    height: 60px;
+    width: 60px;
+    visibility: visible;
+    opacity: 1;
+  }
+  50% {
+    height: 70px;
+    width: 70px;
+    visibility: visible;
+    opacity: 0.7;
+  }
+  100% {
+    height: 80px;
+    width: 80px;
+    opacity: 0;
+    visibility: visible;
+  }
+}
+@keyframes playButtonAnime {
+  0% {
+    visibility: visible;
+    font-size: 35px;
+    opacity: 1;
+  }
+  50% {
+    visibility: visible;
+    font-size: 45px;
+    opacity: 0.7;
+  }
+  100% {
+    visibility: visible;
+    font-size: 55px;
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: scale(0.5);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+//volume slider
+.range2 {
   -webkit-appearance: none;
-  height: 13px;
-  width: 13px;
-  border-radius: 50%;
+  background: linear-gradient(
+    to right,
+    white 0%,
+    white 50%,
+    #444 55%,
+    #444 60%,
+    #444 62.5%,
+    #444 100%
+  );
+  height: 3px;
+  top: -8px;
+  position: relative;
+  transition: 0.1s ease-in;
+  width: 80px;
+}
+.range2::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: white;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 5px white;
+  height: 12px;
+  transition: 0.1s ease-in;
+  width: 12px;
+}
+.loaded .range2,
+.loaded .range2::-webkit-slider-thumb {
+  transition: 0.1s ease-in;
+}
+:focus {
+  outline: none;
+}
+
+//video seeker
+.range {
+  -webkit-appearance: none;
+  cursor: pointer;
+  height: 3px;
+  position: relative;
+  bottom: 20px;
+  margin-left: 10px;
+  transition: 0.1s ease-in;
+  vertical-align: bottom;
+  width: 97%;
+}
+.videoSeeker:hover .range,
+.videoSeeker.hover .range {
+  height: 5px;
+}
+
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: red;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 5px red;
+  height: 0;
+  transition: 0.1s ease-in;
+  width: 0;
+}
+.videoSeeker:hover .range::-webkit-slider-thumb,
+.videoSeeker.hover .range::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+}
+
+.loaded .range,
+.loaded .range::-webkit-slider-thumb {
+  transition: 0.1s ease-in;
+}
+
+:focus {
+  outline: none;
 }
