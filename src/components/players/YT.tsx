@@ -16,7 +16,7 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
   const [preVol, setPreVol] = useState<number>(50);
   const [videoTime, setVideoTime] = useState<number>(0);
   const [screenPlay, setScreenPlay] = useState<boolean>(true);
-  const [videoFocus,setVideoFocus] = useState<boolean>(false);
+  const [videoFocus, setVideoFocus] = useState<boolean>(false);
   const [videoSeekerPos, setVideoSeekerPos] = useState<number>(0);
   const [volumeSliderPos, setVolumeSliderPos] = useState<number>(50);
   // const [timer,setTimer] = useState<object>({minutes:0,seconds:0})
@@ -55,7 +55,7 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
         //   // o.style.margin='0px';
         //   // o.style.position='static';
         //   // p.style.display='none';
-        //   q.style.zIndex='2147483649';  
+        //   q.style.zIndex='2147483649';
         // }
       }
     } else if (e.key === "ArrowRight") {
@@ -159,7 +159,7 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
   };
 
   const handleScreenPlay = () => {
-    if(!videoFocus){
+    if (!videoFocus) {
       setVideoFocus(true);
     }
     if (screenPlay) {
@@ -169,7 +169,7 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
       videoRef.current?.play();
       setScreenPlay(true);
     }
-  }
+  };
 
   const handleVideoTime = (e: any) => {
     setVideoTime(e.target.value);
@@ -193,46 +193,45 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
     }
   };
   const convertNumberToTime = (b: number) => {
-    if(b<59){
-      setMinutes(0)
+    if (b < 59) {
+      setMinutes(0);
     }
-    const m = b - minutes*59;
-    if(seconds<"59"){
-    const str = "" + m.toFixed()
-  const pad = "00"
-  const ans = pad.substring(0, pad.length - str.length) + str
-    setSeconds(ans);}
-    else{
-      setSeconds("00")
-      setMinutes(minutes+1);
+    const m = b - minutes * 59;
+    if (seconds < "59") {
+      const str = "" + m.toFixed();
+      const pad = "00";
+      const ans = pad.substring(0, pad.length - str.length) + str;
+      setSeconds(ans);
+    } else {
+      setSeconds("00");
+      setMinutes(minutes + 1);
     }
   };
 
-  const finalDuration=()=>{
-    let b=0;
-    if(videoRef.current){
-    b = videoRef.current?.duration;
+  const finalDuration = () => {
+    let b = 0;
+    if (videoRef.current) {
+      b = videoRef.current?.duration;
     }
 
-    const min = b/60
-    const sec = b%60
-    const str = "" + sec.toFixed()
-    const pad = "00"
-    const ans = pad.substring(0, pad.length - str.length) + str
+    const min = b / 60;
+    const sec = b % 60;
+    const str = "" + sec.toFixed();
+    const pad = "00";
+    const ans = pad.substring(0, pad.length - str.length) + str;
 
-    return `${min.toFixed()}:${ans}` ;
-    
-  }
+    return `${min.toFixed()}:${ans}`;
+  };
 
   return (
-    <div className="container" >
+    <div className="container">
       {url ? (
-        <div className="videoplayer" 
-        onKeyDown={handleKeyPress}>
-          <div onClick={handlePlay} >
-            <video 
+        <div className="videoplayer" onKeyDown={handleKeyPress}>
+          <div onClick={handlePlay}>
+            <video
               loop
-              ref={videoRef} tabIndex={0}
+              ref={videoRef}
+              tabIndex={0}
               onClick={handleScreenPlay}
               className="video"
               onTimeUpdate={handleVideoSeekerCont}
@@ -241,8 +240,20 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
             </video>
           </div>
           <div className="playPause">
-                    <div  style={{animationName:`${!screenPlay?'playButtonAnime':''}`}} ><IoMdPause /></div>
-                    <div  style={{animationName:`${screenPlay?'playButtonAnime':''}`}}><ImPlay3 /></div>    
+            <div
+              style={{
+                animationName: `${!screenPlay ? "playButtonAnime" : ""}`,
+              }}
+            >
+              <IoMdPause />
+            </div>
+            <div
+              style={{
+                animationName: `${screenPlay ? "playButtonAnime" : ""}`,
+              }}
+            >
+              <ImPlay3 />
+            </div>
           </div>
           <div id="c" className={play ? "controls-hidden" : "controls"}>
             <div className="videoSeeker">
