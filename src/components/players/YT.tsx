@@ -1,109 +1,154 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { playerProps } from "../../types";
-import { throwPlayerPropsError } from "../../utils/helpers";
+import { throwPlayerPropsError, logger } from "../../utils/helpers";
 import "./YT.scss";
-import { ImPlay3, ImSpinner3 } from "react-icons/im";
+import { ImPlay3 } from "react-icons/im";
 import { IoMdPause, IoMdVolumeOff } from "react-icons/io";
 import { MdVolumeDown, MdVolumeUp } from "react-icons/md";
-import { BiFullscreen } from "react-icons/bi";
+import { BiFullscreen, BiExitFullscreen } from "react-icons/bi";
+import Spinner1 from "../Spinners/Spinner1";
 
-const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
+const YT: React.FC<playerProps> = ({
+  sourceUrl,
+  createUrl = false,
+  videoSeekerColor = "#cc181e ",
+  controlColor = "#cc181e",
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
+  const [error, setError] = useState<
+    "" | "Timeout Error" | "Server Error" | "Failed to play video"
+  >("");
   const [muted, setMuted] = useState<number>(50);
   const [url, setUrl] = useState<string>("");
   const [play, setPlay] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [vol, setVol] = useState<number>(50);
   const [preVol, setPreVol] = useState<number>(50);
-  const [videoTime, setVideoTime] = useState<number>(0);
   const [screenPlay, setScreenPlay] = useState<boolean>(true);
-  const [videoFocus, setVideoFocus] = useState<boolean>(false);
+  const [videoTime, setVideoTime] = useState<number>(0);
   const [videoSeekerPos, setVideoSeekerPos] = useState<number>(0);
   const [volumeSliderPos, setVolumeSliderPos] = useState<number>(50);
-  // const [timer,setTimer] = useState<object>({minutes:0,seconds:0})
   const [minutes, setMinutes] = useState<number>(0);
   const [seconds, setSeconds] = useState<string>("00");
+  const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
+  const volUpIcon = useRef<HTMLDivElement>(null);
+  const volDownIcon = useRef<HTMLDivElement>(null);
+  const volMuteIcon = useRef<HTMLDivElement>(null);
+  const videoSeeker = useRef<HTMLInputElement>(null);
 
   const createUrlObject = useCallback(async () => {
-    const response = await fetch(sourceUrl);
-    const blob = await response.blob();
-    const _url = URL.createObjectURL(blob);
-    setUrl(_url);
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => {
+        setError("Timeout Error");
+        controller.abort();
+        logger(error);
+      }, 10000);
+      const response = await fetch(sourceUrl, {
+        signal: controller.signal,
+      });
+      if (response.status === 200) {
+        const blob = await response.blob();
+        const _url = URL.createObjectURL(blob);
+        clearTimeout(id);
+        setUrl(_url);
+        setVideoLoaded(true);
+      } else if (response.status >= 500) {
+        setError("Server Error");
+      } else {
+        setError("Failed to play video");
+      }
+    } catch (err: any) {
+      logger(err.message);
+      setError("Server Error");
+    }
   }, [sourceUrl]);
 
   useEffect(() => {
     if (!sourceUrl) throwPlayerPropsError();
     if (!createUrl) return setUrl(sourceUrl);
     createUrlObject();
-  }, [sourceUrl, createUrlObject, createUrl]);
+
+    if (videoSeeker.current) {
+      videoSeeker.current.style.setProperty(
+        "--SliderColor",
+        `${videoSeekerColor}`
+      );
+    }
+  }, [sourceUrl, createUrlObject, createUrl, videoSeekerColor]);
 
   const handleKeyPress = (e: any) => {
-    if (e.key === "f" || e.key === "F") {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        videoRef.current?.requestFullscreen();
-        // const o=document.getElementById("f");
-        // const p=document.getElementsByTagName("head")[0];
-        // const q=document.getElementById("c");
-        // if(q ){
-        //   console.log("j");
-        //   // o.style.zIndex='2147483647';
-        //   // o.style.height='100%';
-        //   // o.style.width='100%';
-        //   // o.style.display='block';
-        //   // o.style.backgroundColor='grey';
-        //   // o.style.margin='0px';
-        //   // o.style.position='static';
-        //   // p.style.display='none';
-        //   q.style.zIndex='2147483649';
-        // }
-      }
-    } else if (e.key === "ArrowRight") {
-      if (videoRef.current) {
-        videoRef.current.currentTime =
-          (videoRef.current.duration / 1000) * videoTime + 5;
-      }
-    } else if (e.key === "ArrowLeft") {
-      if (videoRef.current) {
-        videoRef.current.currentTime =
-          (videoRef.current.duration / 1000) * videoTime - 5;
-      }
-    } else if (e.key === "ArrowUp") {
-      if (videoRef.current) {
-        if (videoRef.current.volume < 1) {
-          videoRef.current.volume = (vol + 10) / 100;
-          setMuted(vol + 10);
-          setVol(vol + 10);
-          setVolumeSliderPos(vol + 10);
-        } else {
-          videoRef.current.volume = 1;
-          setMuted(100);
-          setVol(100);
-          setVolumeSliderPos(100);
+    e.preventDefault();
+    const pressedKey = e.key;
+    switch (pressedKey) {
+      case "f":
+      case "F":
+        handleFullScreenRequest();
+        break;
+      case "ArrowRight":
+        if (videoRef.current) {
+          videoRef.current.currentTime =
+            (videoRef.current.duration / 1000) * videoTime + 5;
         }
-      }
-    } else if (e.key === "ArrowDown") {
-      if (videoRef.current) {
-        if (videoRef.current.volume >= 0.1) {
-          videoRef.current.volume = (vol - 10) / 100;
-          setMuted(vol - 10);
-          setVol(vol - 10);
-          setVolumeSliderPos(vol - 10);
-        } else {
-          videoRef.current.volume = 0;
-          setMuted(0);
-          setVol(0);
-          setVolumeSliderPos(0);
+        break;
+      case "ArrowLeft":
+        if (videoRef.current) {
+          videoRef.current.currentTime =
+            (videoRef.current.duration / 1000) * videoTime - 5;
         }
-      }
-    } else if (e.key === " ") {
-      if (play) {
-        videoRef.current?.pause();
-        setPlay(false);
-      } else {
-        videoRef.current?.play();
-        setPlay(true);
-      }
+        break;
+      case "ArrowUp":
+        if (videoRef.current) {
+          if (videoRef.current.volume < 1) {
+            videoRef.current.volume = (vol + 10) / 100;
+            setMuted(vol + 10);
+            setVol(vol + 10);
+            setVolumeSliderPos(vol + 10);
+          } else {
+            videoRef.current.volume = 1;
+            setMuted(100);
+            setVol(100);
+            setVolumeSliderPos(100);
+          }
+          volUpIcon.current?.classList.add("volumeButtonAnime");
+          setTimeout(() => {
+            volUpIcon.current?.classList.remove("volumeButtonAnime");
+          }, 500);
+        }
+        break;
+      case "ArrowDown":
+        if (videoRef.current) {
+          if (videoRef.current.volume >= 0.04) {
+            videoRef.current.volume = (vol - 10) / 100;
+            setMuted(vol - 10);
+            setVol(vol - 10);
+            setVolumeSliderPos(vol - 10);
+            volDownIcon.current?.classList.add("volumeButtonAnime");
+            setTimeout(() => {
+              volDownIcon.current?.classList.remove("volumeButtonAnime");
+            }, 500);
+          } else {
+            videoRef.current.volume = 0;
+            setMuted(0);
+            setVol(0);
+            setVolumeSliderPos(0);
+            volMuteIcon.current?.classList.add("volumeButtonAnime");
+            setTimeout(() => {
+              volMuteIcon.current?.classList.remove("volumeButtonAnime");
+            }, 500);
+          }
+        }
+        break;
+      case " ":
+        if (play) {
+          videoRef.current?.pause();
+          setPlay(false);
+        } else {
+          videoRef.current?.play();
+          setPlay(true);
+        }
+        break;
     }
   };
 
@@ -116,15 +161,17 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
       setPlay(true);
     }
   };
-  // const handleScreenPlay = () => {
-  //   if (play) {
-  //     videoRef.current?.pause();
-  //     setPlay(false);
-  //   } else {
-  //     videoRef.current?.play();
-  //     setPlay(true);
-  //   }
-  // };
+
+  const handleScreenPlay = () => {
+    if (screenPlay) {
+      videoRef.current?.pause();
+      setScreenPlay(false);
+    } else {
+      videoRef.current?.play();
+      setScreenPlay(true);
+    }
+  };
+
   const handleVolume = () => {
     if (videoRef.current) {
       if (muted < 3) {
@@ -156,19 +203,6 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
     }
     setMuted(e.target.value);
     setVolumeSliderPos(e.target.value);
-  };
-
-  const handleScreenPlay = () => {
-    if (!videoFocus) {
-      setVideoFocus(true);
-    }
-    if (screenPlay) {
-      videoRef.current?.pause();
-      setScreenPlay(false);
-    } else {
-      videoRef.current?.play();
-      setScreenPlay(true);
-    }
   };
 
   const handleVideoTime = (e: any) => {
@@ -208,6 +242,18 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
     }
   };
 
+  const handleFullScreenRequest = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      videoRef.current?.classList.remove("fullScreenStyling");
+      setFullScreenMode(false);
+    } else {
+      containerRef.current?.requestFullscreen();
+      videoRef.current?.classList.add("fullScreenStyling");
+      setFullScreenMode(true);
+    }
+  };
+
   const finalDuration = () => {
     let b = 0;
     if (videoRef.current) {
@@ -224,105 +270,131 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
   };
 
   return (
-    <div className="container">
-      {url ? (
-        <div className="videoplayer" onKeyDown={handleKeyPress}>
+    <div>
+      {error}
+      <div
+        className="videoplayer"
+        ref={containerRef}
+        onKeyDown={handleKeyPress}
+      >
+        {videoLoaded ? (
           <div onClick={handlePlay}>
             <video
               loop
               ref={videoRef}
               tabIndex={0}
-              onClick={handleScreenPlay}
               className="video"
               onTimeUpdate={handleVideoSeekerCont}
+              onClick={handleScreenPlay}
             >
               <source src={url} type="video/mp4" />
             </video>
           </div>
-          <div className="playPause">
-            <div
-              style={{
-                animationName: `${!screenPlay ? "playButtonAnime" : ""}`,
-              }}
-            >
-              <IoMdPause />
-            </div>
-            <div
-              style={{
-                animationName: `${screenPlay ? "playButtonAnime" : ""}`,
-              }}
-            >
-              <ImPlay3 />
-            </div>
+        ) : (
+          <div className="spinner-container">
+            <Spinner1 />
           </div>
-          <div id="c" className={play ? "controls-hidden" : "controls"}>
-            <div className="videoSeeker">
-              <input
-                type="range"
-                min="0"
-                max="1000"
-                step="1"
-                className="range"
-                style={{
-                  background: ` linear-gradient(to right,
-    #cc181e ${videoSeekerPos + 0.5}%, #444 0%)`,
-                }}
-                value={videoTime}
-                onChange={handleVideoTime}
-              />
-            </div>
-            <div className="gradient"></div>
-            <div
-              className={play ? "playButton pause" : "playButton play"}
-              onClick={handlePlay}
-            ></div>
-            <div className="volumeButton">
-              {muted < 3 ? (
-                <div onClick={handleVolume}>
-                  <IoMdVolumeOff />
-                </div>
-              ) : muted <= 50 ? (
-                <div onClick={handleVolume}>
-                  <MdVolumeDown />
-                </div>
-              ) : (
-                <div onClick={handleVolume}>
-                  <MdVolumeUp />
-                </div>
-              )}
-            </div>
-            <div className="volumeSlider">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={vol}
-                onChange={handleVolumeSlider}
-                className="range2"
-                style={{
-                  background: ` linear-gradient(to right,
-                    white ${volumeSliderPos}%, #444 0%)`,
-                }}
-              />
-            </div>
-            <div className="timer">
-              {minutes}:{seconds} / {finalDuration()}
-            </div>
-            <div
-              className="fullScreen"
-              onClick={() => videoRef.current?.requestFullscreen()}
-            >
-              <BiFullscreen />
-            </div>
+        )}
+
+        <div className="volumeIcon">
+          <div ref={volMuteIcon}>
+            <IoMdVolumeOff />
+          </div>
+          <div ref={volDownIcon}>
+            <MdVolumeDown />
+          </div>
+          <div ref={volUpIcon}>
+            <MdVolumeUp />
+          </div>
+          )
+        </div>
+
+        <div className="playPause">
+          <div
+            style={{
+              animationName: `${!screenPlay ? "playButtonAnime" : ""}`,
+            }}
+          >
+            <IoMdPause />
+          </div>
+          <div
+            style={{
+              animationName: `${screenPlay ? "playButtonAnime" : ""}`,
+            }}
+          >
+            <ImPlay3 />
           </div>
         </div>
-      ) : (
-        <div className="loader">
-          <ImSpinner3 />
+        <div className={play ? "controls-hidden" : "controls"}>
+          <div className="videoSeeker">
+            <input
+              type="range"
+              min="0"
+              max="1000"
+              ref={videoSeeker}
+              step="1"
+              className="range"
+              style={{
+                background: ` linear-gradient(to right,
+    ${videoSeekerColor} ${videoSeekerPos + 0.5}%, #444 0%)`,
+              }}
+              value={videoTime}
+              onChange={handleVideoTime}
+            />
+          </div>
+          <div className="gradient"></div>
+          <div
+            style={{
+              borderColor: `transparent transparent transparent ${controlColor} `,
+            }}
+            className={play ? "playButton pause" : "playButton play"}
+            onClick={handlePlay}
+          ></div>
+          <div className="volumeButton">
+            {muted < 3 ? (
+              <div onClick={handleVolume} style={{ color: `${controlColor}` }}>
+                <IoMdVolumeOff />
+              </div>
+            ) : muted <= 50 ? (
+              <div onClick={handleVolume} style={{ color: `${controlColor}` }}>
+                <MdVolumeDown />
+              </div>
+            ) : (
+              <div onClick={handleVolume} style={{ color: `${controlColor}` }}>
+                <MdVolumeUp />
+              </div>
+            )}
+          </div>
+          <div className="volumeSlider">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={vol}
+              onChange={handleVolumeSlider}
+              className="range2"
+              style={{
+                background: ` linear-gradient(to right,
+                    ${controlColor} ${volumeSliderPos}%, #444 0%)`,
+              }}
+            />
+          </div>
+          <div className="timer" style={{ color: ` ${controlColor}` }}>
+            {minutes}:{seconds} / {finalDuration()}
+          </div>
+          <div
+            className="fullScreen"
+            // @ts-ignore
+            onClick={handleFullScreenRequest}
+            style={{ color: ` ${controlColor}` }}
+          >
+            {fullScreenMode ? <BiExitFullscreen /> : <BiFullscreen />}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
+
 export default YT;
