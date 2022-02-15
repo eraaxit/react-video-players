@@ -12,8 +12,66 @@
 // }
 
 .playButton {
+  float: left;
+}
+.volumeSlider input {
+  cursor: pointer;
+}
+.volumeButton {
+  width: 20px;
+  float: left;
+}
+.volumeSlider input {
+  margin-left: 10px;
+}
+
+.fullScreenStyling {
+  height: 100vh;
+}
+
+.fullScreen {
+  float: right;
+}
+.videoplayer {
+  width: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.controls {
+  width: 100%;
+  position: relative;
+  bottom: 40px;
+  div {
+    display: float;
+    color: white;
+  }
+}
+
+i:hover {
+  cursor: pointer;
+}
+
+input[type="range"] {
+  position: relative;
+  left: -3px;
+  height: 4px;
+  background: #fdfdfd99;
+  border-radius: 7px;
+}
+@mixin common-control-css {
+  padding: 0px 10px;
+  color: rgb(255, 255, 255);
+  font-size: 24px;
+  cursor: pointer;
+  position: relative;
+  top: -5px;
+}
+
+.playButton {
   @include common-control-css;
   float: left;
+  top: -1px;
   border-color: transparent transparent transparent white;
   cursor: pointer;
   will-change: border-width;
@@ -57,10 +115,10 @@
 }
 .timer {
   @include common-control-css;
-  font-size: 13px;
+  font-size: 15px;
   float: left;
   font-family: Arial, Helvetica, sans-serif;
-  top: 0px;
+  top: 3px;
   left: -5px;
 }
 .volumeButton:hover ~ .volumeSlider {
@@ -75,10 +133,13 @@
   width: 80px;
   height: auto;
 }
-
+.volButton:hover .volumeSlider {
+  display: inline-block !important;
+  width: 10px;
+  height: 10px;
+}
 .gradient {
   width: 100%;
-  height: 150px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(0, 0, 0, 1));
   position: absolute;
   top: -95px;
@@ -88,6 +149,12 @@
 .videoplayer {
   width: fit-content;
   position: relative;
+  background: rgb(22, 22, 22);
+  min-height: 80vh;
+  min-width: 40vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .controls-hidden {
   width: 100%;
@@ -111,28 +178,35 @@
   display: block;
 }
 
-.loader {
-  font-size: 40px;
-  height: 20px;
-  width: 20px;
-  color: black;
-  margin: auto;
-  margin-top: 45vh;
-  animation: load 0.5s infinite;
-  transform-origin: 20px 20px;
-}
-@keyframes load {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .video {
   position: relative;
 }
+
+.volumeIcon {
+  position: absolute;
+  margin: auto;
+  color: rgb(255, 255, 255);
+  height: 10%;
+  width: 10%;
+  bottom: 50%;
+  left: 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0px;
+  div {
+    animation-duration: 0.5s;
+    animation-iteration-count: 1;
+    animation-direction: linear;
+    animation-timing-function: ease-in;
+    font-size: 0px;
+  }
+}
+
+.volumeButtonAnime {
+  animation-name: playButtonAnime;
+}
+
 .playPause {
   position: absolute;
   margin: auto;
@@ -144,74 +218,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.playPause div {
-  animation-duration: 0.5s;
-  animation-iteration-count: 1;
-  animation-direction: linear;
-  animation-timing-function: ease-in;
-  font-size: 0px;
-}
-
-@keyframes playBoxAnime {
-  0% {
-    height: 60px;
-    width: 60px;
-    visibility: visible;
-    opacity: 1;
+  div {
+    animation-duration: 0.5s;
+    animation-iteration-count: 1;
+    animation-direction: linear;
+    animation-timing-function: ease-in;
+    font-size: 0px;
   }
-  50% {
-    height: 70px;
-    width: 70px;
-    visibility: visible;
-    opacity: 0.7;
-  }
-  100% {
-    height: 80px;
-    width: 80px;
-    opacity: 0;
-    visibility: visible;
-  }
-}
-@keyframes playButtonAnime {
-  0% {
-    visibility: visible;
-    font-size: 35px;
-    opacity: 1;
-  }
-  50% {
-    visibility: visible;
-    font-size: 45px;
-    opacity: 0.7;
-  }
-  100% {
-    visibility: visible;
-    font-size: 55px;
-    opacity: 0;
-  }
-}
-
-//volume
-
-.volumeUpDown {
-  position: absolute;
-  margin: auto;
-  color: red;
-  height: 10%;
-  width: 10%;
-  bottom: 80%;
-  left: 45%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-}
-.volumeUpDown div {
-  animation-duration: 0.5s;
-  animation-iteration-count: 1;
-  animation-direction: linear;
-  animation-timing-function: ease-in;
-  font-size: 0px;
 }
 
 @keyframes playBoxAnime {
@@ -336,3 +349,40 @@
 :focus {
   outline: none;
 }
+
+.error {
+  display: inline-block;
+  position: absolute;
+  top: 18px;
+}
+.timer {
+  top: 1px;
+}
+
+@media only screen and (max-width: 885px) {
+  .error {
+    font-size: 10px;
+    position: absolute;
+    top: 23px;
+  }
+  .playButton {
+    padding: 0;
+    margin-left: 10px;
+  }
+  .volumeButton {
+    padding-left: 5px;
+  }
+  .timer {
+    padding: 0;
+    font-size: 12px;
+    top: 2px;
+  }
+  .fullScreen {
+    padding: 0;
+    margin-right: 10px;
+  }
+}
+
+// @media only screen and (max-width: 400px){
+
+// }
