@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { playerProps } from "../../types";
-import { throwPlayerPropsError } from "../../utils/helpers";
+import { throwPlayerPropsError, logger } from "../../utils/helpers";
 import "./YT.scss";
 import { ImPlay3 } from "react-icons/im";
 import { IoMdPause, IoMdVolumeOff } from "react-icons/io";
@@ -8,7 +8,12 @@ import { MdVolumeDown, MdVolumeUp } from "react-icons/md";
 import { BiFullscreen, BiExitFullscreen } from "react-icons/bi";
 import Spinner1 from "../Spinners/Spinner1";
 
-const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
+const YT: React.FC<playerProps> = ({
+  sourceUrl,
+  createUrl = false,
+  videoSeekerColor = "#cc181e",
+  controlColor = "#cc181e",
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
   const [error, setError] = useState<
@@ -30,6 +35,9 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
   const volUpIcon = useRef<HTMLDivElement>(null);
   const volDownIcon = useRef<HTMLDivElement>(null);
   const volMuteIcon = useRef<HTMLDivElement>(null);
+  const videoSeeker = useRef<HTMLInputElement>(null);
+  const [bIconAnimate, setBIconAnimate] = useState("");
+  const [fIconAnimate, setFIConAnimate] = useState("");
 
   const createUrlObject = useCallback(async () => {
     try {
@@ -37,7 +45,8 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
       const id = setTimeout(() => {
         controller.abort();
         setError("Timeout Error");
-        console.log("[react-video-players] error in fetching video -", error);
+        controller.abort();
+        console.log(logger(error));
       }, 10000);
       const response = await fetch(sourceUrl, {
         signal: controller.signal,
@@ -53,8 +62,8 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
       } else {
         setError("Failed to play video");
       }
-    } catch (error) {
-      console.log("[react-video-players] error in fetching video -", error);
+    } catch (err: any) {
+      console.log(logger(err.message));
       setError("Server Error");
     }
   }, [sourceUrl]);
@@ -63,7 +72,14 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
     if (!sourceUrl) throwPlayerPropsError();
     if (!createUrl) return setUrl(sourceUrl);
     createUrlObject();
-  }, [sourceUrl, createUrlObject, createUrl]);
+
+    if (videoSeeker.current) {
+      videoSeeker.current.style.setProperty(
+        "--SliderColor",
+        `${videoSeekerColor}`
+      );
+    }
+  }, [sourceUrl, createUrlObject, createUrl, videoSeekerColor]);
 
   const handleKeyPress = (e: any) => {
     e.preventDefault();
@@ -78,12 +94,20 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
           videoRef.current.currentTime =
             (videoRef.current.duration / 1000) * videoTime + 5;
         }
+        setFIConAnimate("FiconAnimate");
+        setTimeout(() => {
+          setFIConAnimate("");
+        }, 1000);
         break;
       case "ArrowLeft":
         if (videoRef.current) {
           videoRef.current.currentTime =
             (videoRef.current.duration / 1000) * videoTime - 5;
         }
+        setBIconAnimate("bIconAnimate");
+        setTimeout(() => {
+          setBIconAnimate("");
+        }, 1000);
         break;
       case "ArrowUp":
         if (videoRef.current) {
@@ -282,6 +306,12 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
           </div>
         )}
 
+        <div className={`${bIconAnimate} playForBackIcon playBackIcon`}>
+          <div className={`${bIconAnimate} Bicon Bicon1`}></div>
+          <div className={`${bIconAnimate} Bicon Bicon2`}></div>
+          <div className={`${bIconAnimate} Bicon Bicon3`}></div>
+        </div>
+
         <div className="volumeIcon">
           <div ref={volMuteIcon}>
             <IoMdVolumeOff />
@@ -311,17 +341,25 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
             <ImPlay3 />
           </div>
         </div>
-        <div className={play ? "controls-hidden" : "controls"}>
+
+        <div className={`${fIconAnimate} playForBackIcon playForwardIcon`}>
+          <div className={`${fIconAnimate} Ficon Ficon1`}></div>
+          <div className={`${fIconAnimate} Ficon Ficon2`}></div>
+          <div className={`${fIconAnimate} Ficon Ficon3`}></div>
+        </div>
+
+        <div className={play ? "controls hidden" : "controls"}>
           <div className="videoSeeker">
             <input
               type="range"
               min="0"
               max="1000"
+              ref={videoSeeker}
               step="1"
               className="range"
               style={{
                 background: ` linear-gradient(to right,
-    #cc181e ${videoSeekerPos + 0.5}%, #444 0%)`,
+                  ${videoSeekerColor} ${videoSeekerPos + 0.5}%, #444 0%)`,
               }}
               value={videoTime}
               onChange={handleVideoTime}
@@ -329,20 +367,23 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
           </div>
           <div className="gradient"></div>
           <div
+            style={{
+              borderColor: `transparent transparent transparent ${controlColor} `,
+            }}
             className={play ? "playButton pause" : "playButton play"}
             onClick={handlePlay}
           ></div>
           <div className="volumeButton">
             {muted < 3 ? (
-              <div onClick={handleVolume}>
+              <div onClick={handleVolume} style={{ color: `${controlColor}` }}>
                 <IoMdVolumeOff />
               </div>
             ) : muted <= 50 ? (
-              <div onClick={handleVolume}>
+              <div onClick={handleVolume} style={{ color: `${controlColor}` }}>
                 <MdVolumeDown />
               </div>
             ) : (
-              <div onClick={handleVolume}>
+              <div onClick={handleVolume} style={{ color: `${controlColor}` }}>
                 <MdVolumeUp />
               </div>
             )}
@@ -358,18 +399,21 @@ const YT: React.FC<playerProps> = ({ sourceUrl, createUrl = false }) => {
               className="range2"
               style={{
                 background: ` linear-gradient(to right,
-                    white ${volumeSliderPos}%, #444 0%)`,
+                  ${controlColor} ${volumeSliderPos}%, #444 0%)`,
               }}
             />
           </div>
-          <div className="timer">
+          <div className="timer" style={{ color: ` ${controlColor}` }}>
             {minutes}:{seconds} / {finalDuration()}
           </div>
-          <div className="error">{error}</div>
+          <div className="error" style={{ color: ` ${controlColor}` }}>
+            {error}
+          </div>
           <div
             className="fullScreen"
             // @ts-ignore
             onClick={handleFullScreenRequest}
+            style={{ color: ` ${controlColor}` }}
           >
             {fullScreenMode ? <BiExitFullscreen /> : <BiFullscreen />}
           </div>
